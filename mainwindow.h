@@ -21,5 +21,6 @@ private:
     Ui::MainWindow *ui;
 
     void createAboutPopup();
+    void log(QString msg);
 };
 #endif // MAINWINDOW_H
