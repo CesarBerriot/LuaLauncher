@@ -1,5 +1,6 @@
 #include "io.hpp"
 #include "ui/ui.hpp"
+#include "utils/utils.hpp"
 #include "macros/macros.hpp"
 #include <sstream>
 #include <dirent.h>
@@ -27,14 +28,15 @@ void io::run_script(std::string file_name)
 
 	// load the file onto the VM's stack
 	if(luaL_loadfile(L, full_path.c_str()) != LUA_OK)
-	{	ui::log(make_string("Failed to load script file '" << full_path << '\''));
+	{	ui::log(make_string("Failed to load script file '" << full_path << "' : '"
+							<< lua_tolstring(L, lua_gettop(L), nullptr) << '\''));
 		goto cleanup;
 	}
 
 	// enable buffering of stdout
 	char stdout_buffer[BUFSIZ];
 	memset(stdout_buffer, '\0', BUFSIZ);
-	setvbuf(stdout, stdout_buffer, _IOFBF, BUFSIZ);
+	setvbuf(stdout, stdout_buffer, _IOLBF, BUFSIZ);
 
 	// run the script
 	if(lua_pcall(L, 0, 0, 0) != LUA_OK)
@@ -44,10 +46,8 @@ void io::run_script(std::string file_name)
 	}
 
 	// remove newline from the end of the output, if present
-	size_t stdout_buflen;
-	stdout_buflen = strlen(stdout_buffer);
-	if(stdout_buffer[stdout_buflen - 1] == '\n')
-		stdout_buffer[stdout_buflen - 1] = '\0';
+	if(int i = utils::find_last_eq_byte('\n', stdout_buffer, BUFSIZ); i != -1)
+		stdout_buffer[i] = '\0';
 
 	// log the output & move stdout's cursor
 	ui::log(stdout_buffer, false);
@@ -57,8 +57,7 @@ cleanup:
 	// disable stdout buffering
 	setvbuf(stdout, NULL, _IONBF, 0);
 	// clear Lua VM stack
-	while(lua_gettop(L))
-		lua_pop(L, lua_gettop(L));
+	lua_settop(L, 0);
 	// destroy the VM
 	lua_close(L);
 }

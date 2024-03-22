@@ -23,7 +23,9 @@ add_executable(LuaLauncher WIN32
         src/templates/delegate.hpp
         src/logic/logic.cpp
         src/logic/logic.hpp
-        src/macros/macros.hpp)
+        src/macros/macros.hpp
+        src/utils/utils.cpp
+        src/utils/utils.hpp)
 
 target_include_directories(LuaLauncher PRIVATE
         src

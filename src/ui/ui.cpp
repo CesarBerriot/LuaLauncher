@@ -29,8 +29,13 @@ void ui::widgets::main_window::init()
 
 void ui::widgets::main_window::menu_bar::init()
 {	menu_bar = new QMenuBar(main_window);
+	// file
 	file_submenu::init();
 	menu_bar->addAction(file_submenu::file_submenu->menuAction());
+	// view
+	view_submenu::init();
+	menu_bar->addAction(view_submenu::view_submenu->menuAction());
+	// help
 	help_submenu::init();
 	menu_bar->addAction(help_submenu::help_submenu->menuAction());
 }
@@ -42,6 +47,15 @@ void ui::widgets::main_window::menu_bar::file_submenu::init()
 	add_action = new QAction(main_window);
 	add_action->setText("Add");
 	file_submenu->addAction(add_action);
+}
+
+void ui::widgets::main_window::menu_bar::view_submenu::init()
+{	view_submenu = new QMenu(menu_bar);
+	view_submenu->setTitle("&View");
+	// lua executor
+	lua_executor_action = new QAction(main_window);
+	lua_executor_action->setText("Lua Executor");
+	view_submenu->addAction(lua_executor_action);
 }
 
 void ui::widgets::main_window::menu_bar::help_submenu::init()
@@ -80,7 +94,7 @@ void ui::widgets::main_window::central_widget::layout::script_list::init()
 	QObject::connect(
 		central_widget::layout::script_list::script_list,
 		&QListWidget::itemDoubleClicked,
-		[](QListWidgetItem * item) {item_double_clicked_cb.broadcast(item->text().toStdString());}
+		[](QListWidgetItem * item) { item_double_clicked_cb.broadcast(item->text().toStdString()); }
 	);
 	// *INDENT-ON*
 }
@@ -105,7 +119,7 @@ void ui::widgets::main_window::central_widget::layout::log::init()
 	log = new QTextBrowser(central_widget);
 }
 
-void ui::log(std::string msg, bool use_timestamps)
+void ui::log(std::string msg, bool use_timestamps, QTextBrowser * log)
 {	std::stringstream result_stream;
 	if(use_timestamps)
 	{	// get current time data
@@ -123,5 +137,76 @@ void ui::log(std::string msg, bool use_timestamps)
 
 	result_stream << msg;
 
-	ui::widgets::main_window::central_widget::layout::log::log->append(QString::fromStdString(result_stream.str()));
+	log->append(QString::fromStdString(result_stream.str()));
+}
+
+void ui::widgets::lua_executor::init()
+{	lua_executor = new QWidget;
+	lua_executor->resize(600, 400);
+	lua_executor->setWindowTitle("Lua Executor");
+	layout::init();
+	lua_executor->setLayout(layout::layout);
+	executor_log("Successfully Initialized");
+}
+
+void ui::widgets::lua_executor::layout::init()
+{	layout = new QVBoxLayout;
+	top_layout::init();
+	layout->addItem(top_layout::top_layout);
+	log_layout::init();
+	layout->addItem(log_layout::log_layout);
+}
+
+void ui::widgets::lua_executor::layout::top_layout::init()
+{	top_layout = new QHBoxLayout;
+	top_layout->setSpacing(11);
+	editor_layout::init();
+	top_layout->addItem(editor_layout::editor_layout);
+	button_panel_layout::init();
+	top_layout->addItem(button_panel_layout::button_panel_layout);
+}
+
+void ui::widgets::lua_executor::layout::top_layout::editor_layout::init()
+{	editor_layout = new QVBoxLayout;
+	//label
+	label = new QLabel(lua_executor);
+	label->setText("Editor");
+	editor_layout->addWidget(label);
+	//editor
+	editor = new QTextEdit(lua_executor);
+	editor_layout->addWidget(editor);
+}
+
+void ui::widgets::lua_executor::layout::top_layout::button_panel_layout::init()
+{	button_panel_layout = new QVBoxLayout;
+	// label
+	label = new QLabel("Actions", lua_executor);
+	label->setMinimumWidth(150);
+	button_panel_layout->addWidget(label);
+	// run button
+	run_button = new QPushButton("Run", lua_executor);
+	QObject::connect(run_button, &QPushButton::clicked, [] { run_button_clicked_cb.broadcast(); });
+	button_panel_layout->addWidget(run_button);
+	// clear code button
+	clear_code_button = new QPushButton("Clear Code", lua_executor);
+	button_panel_layout->addWidget(clear_code_button);
+	QObject::connect(clear_code_button, &QPushButton::clicked, [] { clear_code_button_clicked_cb.broadcast(); });
+	// clear log button
+	clear_log_button = new QPushButton("Clear Log", lua_executor);
+	button_panel_layout->addWidget(clear_log_button);
+	QObject::connect(clear_log_button, &QPushButton::clicked, [] { clear_log_button_clicked_cb.broadcast(); });
+	// spacer
+	spacer = new QSpacerItem(0, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+	button_panel_layout->addItem(spacer);
+}
+
+void ui::widgets::lua_executor::layout::log_layout::init()
+{	log_layout = new QVBoxLayout;
+	label = new QLabel("Log", lua_executor);
+	label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+	log_layout->addWidget(label);
+	log = new QTextBrowser(lua_executor);
+	log->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
+	log->setMaximumHeight(150);
+	log_layout->addWidget(log);
 }

@@ -9,6 +9,7 @@
 #include <QListWidget>
 #include <QLabel>
 #include <QTextBrowser>
+#include <QPushButton>
 #include <string>
 #include <sstream>
 #include "templates/delegate.hpp"
@@ -25,6 +26,11 @@ namespace ui
 				{	void init();
 					inline QMenu * file_submenu;
 					inline QAction * add_action;
+				}
+				namespace view_submenu
+				{	void init();
+					inline QMenu * view_submenu;
+					inline QAction * lua_executor_action;
 				}
 				namespace help_submenu
 				{	void init();
@@ -55,6 +61,43 @@ namespace ui
 			}
 			inline QStatusBar * status_bar;
 		}
+		namespace lua_executor
+		{	void init();
+			inline QWidget * lua_executor;
+			namespace layout
+			{	void init();
+				inline QVBoxLayout * layout;
+				namespace top_layout
+				{	void init();
+					inline QHBoxLayout * top_layout;
+					namespace editor_layout
+					{	void init();
+						inline QVBoxLayout * editor_layout;
+						inline QLabel * label;
+						inline QTextEdit * editor;
+					}
+					namespace button_panel_layout
+					{	void init();
+						inline QVBoxLayout * button_panel_layout;
+						inline QLabel * label;
+						inline QPushButton * run_button;
+						inline QPushButton * clear_code_button;
+						inline QPushButton * clear_log_button;
+						inline QSpacerItem * spacer;
+						inline templates::delegate<void()> run_button_clicked_cb;
+						inline templates::delegate<void()> clear_code_button_clicked_cb;
+						inline templates::delegate<void()> clear_log_button_clicked_cb;
+					}
+				}
+				namespace log_layout
+				{	void init();
+					inline QVBoxLayout * log_layout;
+					inline QLabel * label;
+					inline QTextBrowser * log;
+				}
+			}
+		}
 	}
-	void log(std::string msg, bool use_timestamps = true);
+	void log(std::string msg, bool use_timestamps = true, QTextBrowser * log = widgets::main_window::central_widget::layout::log::log);
+	inline void executor_log(std::string msg, bool use_timestamps = true) { log(msg, use_timestamps, widgets::lua_executor::layout::log_layout::log); }
 }
