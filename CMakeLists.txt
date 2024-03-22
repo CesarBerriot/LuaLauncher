@@ -14,7 +14,7 @@ find_package(Qt6 COMPONENTS
         Widgets
         REQUIRED)
 
-add_executable(LuaLauncher
+add_executable(LuaLauncher WIN32
         src/main.cpp
         src/ui/ui.hpp
         src/ui/ui.cpp
@@ -22,14 +22,18 @@ add_executable(LuaLauncher
         src/io/io.cpp
         src/templates/delegate.hpp
         src/logic/logic.cpp
-        src/logic/logic.hpp)
+        src/logic/logic.hpp
+        src/macros/macros.hpp)
 
-target_include_directories(LuaLauncher PRIVATE src)
+target_include_directories(LuaLauncher PRIVATE
+        src
+        libs/lua/include)
 
 target_link_libraries(LuaLauncher
         Qt::Core
         Qt::Gui
         Qt::Widgets
+        ${PROJECT_SOURCE_DIR}/libs/lua/liblua54.a
 )
 
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)

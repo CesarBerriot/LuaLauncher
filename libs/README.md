@@ -1,0 +1,1 @@
+These library binaries are made for mingw64. If you target a different achitecture, please replace them according to your needs.

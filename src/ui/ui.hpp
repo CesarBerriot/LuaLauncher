@@ -10,6 +10,7 @@
 #include <QLabel>
 #include <QTextBrowser>
 #include <string>
+#include <sstream>
 #include "templates/delegate.hpp"
 
 namespace ui
@@ -55,5 +56,5 @@ namespace ui
 			inline QStatusBar * status_bar;
 		}
 	}
-	void log(std::string msg);
+	void log(std::string msg, bool use_timestamps = true);
 }

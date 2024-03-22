@@ -105,16 +105,23 @@ void ui::widgets::main_window::central_widget::layout::log::init()
 	log = new QTextBrowser(central_widget);
 }
 
-void ui::log(std::string msg)
-{	time_t current_time = time(NULL);
-	struct tm * time_info = localtime(&current_time);
+void ui::log(std::string msg, bool use_timestamps)
+{	std::stringstream result_stream;
+	if(use_timestamps)
+	{	// get current time data
+		time_t current_time = time(NULL);
+		struct tm * time_info = localtime(&current_time);
 
-	enum { formatted_time_len = 12 };
-	char formatted_time[formatted_time_len];
-	strftime(formatted_time, formatted_time_len, "[%H:%M:%S] ", time_info);
+		// format time data into a buffer
+		enum { formatted_time_len = 12 };
+		char formatted_time[formatted_time_len];
+		strftime(formatted_time, formatted_time_len, "[%H:%M:%S] ", time_info);
 
-	QString combined_str = formatted_time;
-	combined_str.append(msg);
+		// concat **result_stream**
+		result_stream << formatted_time;
+	}
 
-	ui::widgets::main_window::central_widget::layout::log::log->append(combined_str);
+	result_stream << msg;
+
+	ui::widgets::main_window::central_widget::layout::log::log->append(QString::fromStdString(result_stream.str()));
 }

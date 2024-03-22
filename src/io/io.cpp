@@ -1,24 +1,74 @@
 #include "io.hpp"
 #include "ui/ui.hpp"
+#include "macros/macros.hpp"
 #include <sstream>
 #include <dirent.h>
 #include <limits.h>
+#include <stdio.h>
+#include <lua.hpp>
 
 void io::run_script(std::string file_name)
-{	std::stringstream stream;
-	stream << "Running Script '" << file_name << ".lua'";
-	ui::log(stream.str());
+{	// compute full script name, including extension
+	std::string full_name = make_string(file_name << ".lua");
+
+	// logs
+	ui::log(make_string("Running Script '" << full_name << '\''));
+
+	// obtain full path of script
+	std::string full_path = make_string(get_full_scripts_path() << "\\" << full_name);
+
+	// instantiate a lua VM
+	lua_State * L = luaL_newstate();
+	if(!L)
+	{	ui::log("Failed to instantiate a Lua VM");
+		return;
+	}
+	luaL_openlibs(L);
+
+	// load the file onto the VM's stack
+	if(luaL_loadfile(L, full_path.c_str()) != LUA_OK)
+	{	ui::log(make_string("Failed to load script file '" << full_path << '\''));
+		goto cleanup;
+	}
+
+	// enable buffering of stdout
+	char stdout_buffer[BUFSIZ];
+	memset(stdout_buffer, '\0', BUFSIZ);
+	setvbuf(stdout, stdout_buffer, _IOFBF, BUFSIZ);
+
+	// run the script
+	if(lua_pcall(L, 0, 0, 0) != LUA_OK)
+	{	ui::log(make_string("Error while running script '" << full_path << "' : " << lua_tolstring(L, lua_gettop(L), nullptr)));
+		lua_pop(L, lua_gettop(L));
+		goto cleanup;
+	}
+
+	// remove newline from the end of the output, if present
+	size_t stdout_buflen;
+	stdout_buflen = strlen(stdout_buffer);
+	if(stdout_buffer[stdout_buflen - 1] == '\n')
+		stdout_buffer[stdout_buflen - 1] = '\0';
+
+	// log the output & move stdout's cursor
+	ui::log(stdout_buffer, false);
+
+	// cleanup
+cleanup:
+	// disable stdout buffering
+	setvbuf(stdout, NULL, _IONBF, 0);
+	// clear Lua VM stack
+	while(lua_gettop(L))
+		lua_pop(L, lua_gettop(L));
+	// destroy the VM
+	lua_close(L);
 }
 
 std::vector<std::string> io::obtain_script_list()
 {	// obtain full path of scripts directory
-	char cwd_buffer[PATH_MAX];
-	getcwd(cwd_buffer, PATH_MAX);
-	std::stringstream cwd_stream;
-	cwd_stream << cwd_buffer << "\\scripts";
+	std::string scripts_path = get_full_scripts_path();
 
 	// open scripts folder
-	DIR * dir_stream = opendir(cwd_stream.str().c_str());
+	DIR * dir_stream = opendir(scripts_path.c_str());
 	if(!dir_stream)
 	{	ui::log("Folder 'scripts' doesn't exist !");
 		return {};
@@ -46,4 +96,10 @@ std::vector<std::string> io::obtain_script_list()
 		result.push_back(file_name);
 	}
 	return result;
+}
+
+std::string io::get_full_scripts_path()
+{	char cwd_buffer[PATH_MAX];
+	getcwd(cwd_buffer, PATH_MAX);
+	return make_string(cwd_buffer << "\\scripts");
 }
