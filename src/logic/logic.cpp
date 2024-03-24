@@ -32,6 +32,10 @@ void logic::bind_ui_elements()
 	ui::widgets::main_window::menu_bar::view_submenu::lua_executor_action_clicked_cb.bind([]
 	{	ui::widgets::lua_executor::lua_executor->show();
 	});
+	// Help->About -> ui::widgets::about_window::about_window->show()
+	ui::widgets::main_window::menu_bar::help_submenu::about_action_clicked_cb.bind([]
+	{	ui::widgets::about_window::about_window->show();
+	});
 }
 
 void logic::refresh_script_list()

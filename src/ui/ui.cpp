@@ -140,6 +140,12 @@ void ui::log(std::string msg, bool use_timestamps, QTextBrowser * log)
 	log->append(QString::fromStdString(result_stream.str()));
 }
 
+void ui::init_all_widgets()
+{	widgets::main_window::init();
+	widgets::lua_executor::init();
+	widgets::about_window::init();
+}
+
 void ui::widgets::lua_executor::init()
 {	lua_executor = new QDialog;
 	lua_executor->resize(600, 400);
@@ -210,4 +216,32 @@ void ui::widgets::lua_executor::layout::log_layout::init()
 	log->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	log->setMaximumHeight(150);
 	log_layout->addWidget(log);
+}
+
+void ui::widgets::about_window::init()
+{	about_window = new QDialog(main_window::main_window);
+	about_window->setModal(true);
+	about_window->setWindowTitle("About");
+	// layout
+	layout::init();
+	about_window->setLayout(layout::layout);
+	// fixate the window's size
+	QSize desired_size = about_window->sizeHint();
+	//about_window->setFixedSize(desired_size.width(), desired_size.height());
+}
+
+void ui::widgets::about_window::layout::init()
+{	layout = new QVBoxLayout;
+	label = new QLabel(about_window);
+	label->setTextFormat(Qt::MarkdownText);
+	//label->setStyleSheet("QLabel { color : blue; }");
+	label->setOpenExternalLinks(true);
+	label->setText(
+		"# LuaLauncher  \n"
+		"Made with ♥ by César Berriot  \n"
+		"<a style=color:blue; href=\"https://www.linkedin.com/in/c%C3%A9sar-berriot/\">LinkedIn</a> • "
+		"<a style=color:blue; href=\"https://github.com/CesarBerriot\">Github</a> • "
+		"<a style=color:blue; href=\"https://github.com/CesarBerriot/LuaLauncher\">This project</a>"
+	);
+	layout->addWidget(label);
 }

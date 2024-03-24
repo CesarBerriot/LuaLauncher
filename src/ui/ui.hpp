@@ -104,7 +104,17 @@ namespace ui
 				}
 			}
 		}
+		namespace about_window
+		{	void init();
+			inline QDialog * about_window;
+			namespace layout
+			{	void init();
+				inline QVBoxLayout * layout;
+				inline QLabel * label;
+			}
+		}
 	}
+	void init_all_widgets();
 	void log(std::string msg, bool use_timestamps = true, QTextBrowser * log = widgets::main_window::central_widget::layout::log::log);
 	inline void executor_log(std::string msg, bool use_timestamps = true) { log(msg, use_timestamps, widgets::lua_executor::layout::log_layout::log); }
 }

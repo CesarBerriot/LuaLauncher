@@ -7,8 +7,7 @@ int main(int argc, char * argv[])
 {	// create qt application
 	QApplication application(argc, argv);
 	// init ui
-	ui::widgets::main_window::init();
-	ui::widgets::lua_executor::init();
+	ui::init_all_widgets();
 	// init logic
 	logic::bind_ui_elements();
 	logic::refresh_script_list();
