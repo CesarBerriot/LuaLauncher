@@ -3,17 +3,20 @@
 //
 
 #include "utils.hpp"
-#include <unistd.h>
 #include <assert.h>
-#include <unistd.h>
 #include <io.h>
 
-/// microsoft and their "support" of crt
-#define pipe(pipefds) _pipe(pipefds, 0, 0)
+int utils::find_first_eq_byte(utils::byte_t byte, utils::byte_t * buffer, size_t buflen)
+{	int result = -1;
+	for(int i = 0; i < buflen; ++i)
+		if(buffer[i] == byte)
+			return i;
+	return 0;
+}
 
 int utils::find_last_eq_byte(utils::byte_t byte, utils::byte_t * buffer, size_t buflen)
 {	int result = -1;
-	for(size_t i = 0; i < buflen; ++i)
+	for(int i = 0; i < buflen; ++i)
 		if(buffer[i] == byte)
 			result = i;
 	return result;

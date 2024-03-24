@@ -12,6 +12,9 @@ namespace utils
 	typedef char byte_t;
 
 	/// @return index of the found byte, else -1
+	int find_first_eq_byte(byte_t byte, byte_t * buffer, size_t buflen);
+
+	/// @return index of the found byte, else -1
 	int find_last_eq_byte(byte_t byte, byte_t * buffer, size_t buflen);
 
 	/// used by **redirect_stdout** and **restore_stdout**

@@ -1,7 +1,5 @@
 #include "io.hpp"
 #include "ui/ui.hpp"
-#include "logic/logic.hpp"
-#include "utils/utils.hpp"
 #include "macros/macros.hpp"
 #include <sstream>
 #include <dirent.h>

@@ -64,7 +64,10 @@ void logic::run_code(std::string code, bool use_executor_log, std::string script
 			throw make_string("Invalid Code Error : '" << lua_tolstring(L, lua_gettop(L), nullptr) << '\'');
 
 		// run the code
-		log_function(script_name.length() ? make_string("Running Script '" << script_name << '\'') : "Running The Script");
+		if(script_name.length())
+			log_function(make_string("Running Script '" << script_name << ".lua'"));
+		else
+			log_function("Running The Script");
 		if(lua_pcall(L, 0, 0, 0) != LUA_OK)
 			throw make_string("Code Execution Error : '" << lua_tolstring(L, lua_gettop(L), nullptr) << '\'');
 
@@ -72,12 +75,18 @@ void logic::run_code(std::string code, bool use_executor_log, std::string script
 		enum { buflen = 1024 };
 		char stdout_buffer[buflen];
 		utils::read_redirected_stdout(redirected_stdout, stdout_buffer, buflen);
+		int stdout_buffer_str_len = utils::find_first_eq_byte('\0', stdout_buffer, buflen);
+		if(stdout_buffer_str_len == -1)
+			throw "Corrupted Stdout Read Buffer Error : Either the developer is absolutely fucking dumb"
+			"or there's something very wrong with your system";
 
 		// if non-empty, log the script output
-		if(stdout_buffer[0])
+		if(stdout_buffer_str_len)
 		{	// if newline-terminated, remove the trailing newline character from the lua output
-			if(int i = utils::find_last_eq_byte('\n', stdout_buffer, BUFSIZ); i != -1)
-				stdout_buffer[i] = '\0';
+			int last_newline_index = utils::find_last_eq_byte('\n', stdout_buffer, stdout_buffer_str_len);
+			if(last_newline_index != -1)
+				stdout_buffer[last_newline_index] = '\0';
+			// log the script output
 			log_function(stdout_buffer, false);
 		}
 	}
@@ -97,7 +106,7 @@ void logic::run_code(std::string code, bool use_executor_log, std::string script
 void logic::run_script(std::string file_name)
 {	std::string code = io::read_script(file_name);
 	if(code.length())
-		run_code(code);
+		run_code(code, false, file_name);
 }
 
 void logic::run_executor_code()
