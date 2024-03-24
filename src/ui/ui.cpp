@@ -150,6 +150,7 @@ void ui::widgets::lua_executor::init()
 {	lua_executor = new QDialog;
 	lua_executor->resize(600, 400);
 	lua_executor->setWindowTitle("Lua Executor");
+	lua_executor->setWindowFlag(Qt::WindowMaximizeButtonHint);
 	lua_executor->setModal(true);
 	layout::init();
 	lua_executor->setLayout(layout::layout);
@@ -225,9 +226,10 @@ void ui::widgets::about_window::init()
 	// layout
 	layout::init();
 	about_window->setLayout(layout::layout);
-	// fixate the window's size
-	QSize desired_size = about_window->sizeHint();
-	//about_window->setFixedSize(desired_size.width(), desired_size.height());
+	// lock the window's size
+	layout::layout->setSizeConstraint(QLayout::SetFixedSize);
+	enum { margin = 10 };
+	about_window->setContentsMargins(margin, margin, margin, margin);
 }
 
 void ui::widgets::about_window::layout::init()
