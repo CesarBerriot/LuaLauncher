@@ -26,7 +26,9 @@ namespace ui
 				{	void init();
 					inline QMenu * file_submenu;
 					inline QAction * add_action;
+					inline QAction * exit_action;
 					inline templates::delegate<void()> add_action_clicked_cb;
+					inline templates::delegate<void()> exit_action_clicked_cb;
 				}
 				namespace view_submenu
 				{	void init();
@@ -34,11 +36,13 @@ namespace ui
 					inline QAction * refresh_action;
 					inline QAction * lua_executor_action;
 					inline templates::delegate<void()> refresh_action_clicked_cb;
+					inline templates::delegate<void()> lua_executor_action_clicked_cb;
 				}
 				namespace help_submenu
 				{	void init();
 					inline QMenu * help_submenu;
 					inline QAction * about_action;
+					inline templates::delegate<void()> about_action_clicked_cb;
 				}
 			}
 			namespace central_widget
@@ -66,7 +70,7 @@ namespace ui
 		}
 		namespace lua_executor
 		{	void init();
-			inline QWidget * lua_executor;
+			inline QDialog * lua_executor;
 			namespace layout
 			{	void init();
 				inline QVBoxLayout * layout;

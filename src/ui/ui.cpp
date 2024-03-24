@@ -4,9 +4,18 @@
 
 #include "ui.hpp"
 #include <time.h>
-#include <QtWidgets/QStatusBar>
-#include <QtWidgets/QMenuBar>
-#include <QtWidgets/QMenu>
+#include <QStatusBar>
+#include <QMenuBar>
+#include <QMenu>
+#include <QDialog>
+
+#define make_submenu_action(submenu, name, label)	\
+	do	\
+	{	name##_action = new QAction(main_window); \
+		name##_action->setText(label); \
+		QObject::connect(name##_action, &QAction::triggered, [] { name##_action_clicked_cb.broadcast(); }); \
+		submenu##_submenu->addAction(name##_action); \
+	} while(false)
 
 void ui::widgets::main_window::init()
 {	main_window = new QMainWindow();
@@ -41,34 +50,21 @@ void ui::widgets::main_window::menu_bar::init()
 void ui::widgets::main_window::menu_bar::file_submenu::init()
 {	file_submenu = new QMenu(menu_bar);
 	file_submenu->setTitle("File");
-	// add
-	add_action = new QAction(main_window);
-	add_action->setText("Add");
-	QObject::connect(add_action, &QAction::triggered, [] { add_action_clicked_cb.broadcast(); });
-	file_submenu->addAction(add_action);
+	make_submenu_action(file, add, "Add");
+	make_submenu_action(file, exit, "Exit");
 }
 
 void ui::widgets::main_window::menu_bar::view_submenu::init()
 {	view_submenu = new QMenu(menu_bar);
 	view_submenu->setTitle("View");
-	// refresh
-	refresh_action = new QAction(main_window);
-	refresh_action->setText("Refresh");
-	QObject::connect(refresh_action, &QAction::triggered, [] { refresh_action_clicked_cb.broadcast(); });
-	view_submenu->addAction(refresh_action);
-	// lua executor
-	lua_executor_action = new QAction(main_window);
-	lua_executor_action->setText("Lua Executor");
-	view_submenu->addAction(lua_executor_action);
+	make_submenu_action(view, refresh, "Refresh");
+	make_submenu_action(view, lua_executor, "Lua Executor");
 }
 
 void ui::widgets::main_window::menu_bar::help_submenu::init()
 {	help_submenu = new QMenu(menu_bar);
 	help_submenu->setTitle("Help");
-	// about
-	about_action = new QAction(main_window);
-	about_action->setText("About");
-	help_submenu->addAction(about_action);
+	make_submenu_action(help, about, "About");
 }
 
 void ui::widgets::main_window::central_widget::init()
@@ -145,9 +141,10 @@ void ui::log(std::string msg, bool use_timestamps, QTextBrowser * log)
 }
 
 void ui::widgets::lua_executor::init()
-{	lua_executor = new QWidget;
+{	lua_executor = new QDialog;
 	lua_executor->resize(600, 400);
 	lua_executor->setWindowTitle("Lua Executor");
+	lua_executor->setModal(true);
 	layout::init();
 	lua_executor->setLayout(layout::layout);
 	executor_log("Successfully Initialized");

@@ -14,18 +14,24 @@
 #include <libgen.h>
 
 void logic::bind_ui_elements()
-{	// bind io::run_script() on script item double clicked
+{	// script item double clicked -> io::run_script()
 	ui::widgets::main_window::central_widget::layout::script_list::item_double_clicked_cb.bind(run_script);
-	// bind logic::run_executor_code() on executor run button
+	// executor run button -> logic::run_executor_code()
 	ui::widgets::lua_executor::layout::top_layout::button_panel_layout::run_button_clicked_cb.bind(run_executor_code);
-	// bind code clear on executor clear button
+	// executor clear button -> logic::clear_executor_code()
 	ui::widgets::lua_executor::layout::top_layout::button_panel_layout::clear_code_button_clicked_cb.bind(clear_executor_code);
-	// bind executor log clear on executor clear button
+	// executor clear button -> logic::clear_executor_log()
 	ui::widgets::lua_executor::layout::top_layout::button_panel_layout::clear_log_button_clicked_cb.bind(clear_executor_log);
-	// bind adding new scripts on File->Add
+	// File->Add ->  logic::add_new_scripts()
 	ui::widgets::main_window::menu_bar::file_submenu::add_action_clicked_cb.bind(add_new_scripts);
-	// bind refresh script list ui on View->Refresh
+	// File->Exit -> exit()
+	ui::widgets::main_window::menu_bar::file_submenu::exit_action_clicked_cb.bind([] { exit(EXIT_SUCCESS); });
+	// View->Refresh -> logic::refresh_script_list()
 	ui::widgets::main_window::menu_bar::view_submenu::refresh_action_clicked_cb.bind(refresh_script_list);
+	// View->LuaExecutor -> ui::widgets::lua_executor::lua_executor->show()
+	ui::widgets::main_window::menu_bar::view_submenu::lua_executor_action_clicked_cb.bind([]
+	{	ui::widgets::lua_executor::lua_executor->show();
+	});
 }
 
 void logic::refresh_script_list()
