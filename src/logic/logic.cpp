@@ -10,6 +10,8 @@
 #include "macros/macros.hpp"
 #include "utils/utils.hpp"
 #include <unistd.h>
+#include <QFileDialog>
+#include <libgen.h>
 
 void logic::bind_ui_elements()
 {	// bind io::run_script() on script item double clicked
@@ -20,6 +22,10 @@ void logic::bind_ui_elements()
 	ui::widgets::lua_executor::layout::top_layout::button_panel_layout::clear_code_button_clicked_cb.bind(clear_executor_code);
 	// bind executor log clear on executor clear button
 	ui::widgets::lua_executor::layout::top_layout::button_panel_layout::clear_log_button_clicked_cb.bind(clear_executor_log);
+	// bind adding new scripts on File->Add
+	ui::widgets::main_window::menu_bar::file_submenu::add_action_clicked_cb.bind(add_new_scripts);
+	// bind refresh script list ui on View->Refresh
+	ui::widgets::main_window::menu_bar::view_submenu::refresh_action_clicked_cb.bind(refresh_script_list);
 }
 
 void logic::refresh_script_list()
@@ -30,13 +36,16 @@ void logic::refresh_script_list()
 		return;
 	}
 	for(std::string script : script_list)
-		ui::log((std::stringstream() << "Found script '" << script << ".lua'").str());
+		ui::log(make_string("Found script '" << script << ".lua'"));
 	// refresh ui
 	ui::widgets::main_window::central_widget::layout::script_list::refresh(script_list);
 }
 
 void logic::run_code(std::string code, bool use_executor_log, std::string script_name)
-{	auto log_function = [&use_executor_log](std::string msg, bool use_timestamps = true)
+{	// operator ""s
+	using namespace std::string_literals;
+
+	auto log_function = [&use_executor_log](std::string msg, bool use_timestamps = true)
 	{	if(use_executor_log)
 			ui::executor_log(msg, use_timestamps);
 		else
@@ -50,7 +59,7 @@ void logic::run_code(std::string code, bool use_executor_log, std::string script
 	{	// create lua virtual machine
 		L = luaL_newstate();
 		if(!L)
-			throw "Failed to instantiate a Lua VM";
+			throw "Failed to instantiate a Lua VM"s;
 
 		// allow script access to all standard libraries
 		luaL_openlibs(L);
@@ -78,7 +87,7 @@ void logic::run_code(std::string code, bool use_executor_log, std::string script
 		int stdout_buffer_str_len = utils::find_first_eq_byte('\0', stdout_buffer, buflen);
 		if(stdout_buffer_str_len == -1)
 			throw "Corrupted Stdout Read Buffer Error : Either the developer is absolutely fucking dumb"
-			"or there's something very wrong with your system";
+			"or there's something very wrong with your system"s;
 
 		// if non-empty, log the script output
 		if(stdout_buffer_str_len)
@@ -122,4 +131,26 @@ void logic::clear_executor_code()
 
 void logic::clear_executor_log()
 {	ui::widgets::lua_executor::layout::log_layout::log->clear();
+}
+
+void logic::add_new_scripts()
+{	std::string full_scripts_path = io::get_full_scripts_path();
+
+	// file dialog
+	QList<QString> selected_files = QFileDialog::getOpenFileNames(
+										ui::widgets::main_window::main_window,
+										"Add Scripts",
+										QString::fromStdString(full_scripts_path),
+										"*.lua"
+									);
+
+	// copies
+	for(QString selected_file : selected_files)
+	{	// std::string copy_path = make_string(full_scripts_path << )
+		std::string full_path = selected_file.toStdString();
+		io::add_script(full_path);
+	}
+
+	// ui refresh
+	logic::refresh_script_list();
 }

@@ -44,12 +44,18 @@ void ui::widgets::main_window::menu_bar::file_submenu::init()
 	// add
 	add_action = new QAction(main_window);
 	add_action->setText("Add");
+	QObject::connect(add_action, &QAction::triggered, [] { add_action_clicked_cb.broadcast(); });
 	file_submenu->addAction(add_action);
 }
 
 void ui::widgets::main_window::menu_bar::view_submenu::init()
 {	view_submenu = new QMenu(menu_bar);
-	view_submenu->setTitle("&View");
+	view_submenu->setTitle("View");
+	// refresh
+	refresh_action = new QAction(main_window);
+	refresh_action->setText("Refresh");
+	QObject::connect(refresh_action, &QAction::triggered, [] { refresh_action_clicked_cb.broadcast(); });
+	view_submenu->addAction(refresh_action);
 	// lua executor
 	lua_executor_action = new QAction(main_window);
 	lua_executor_action->setText("Lua Executor");

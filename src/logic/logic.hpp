@@ -14,4 +14,6 @@ namespace logic
 	void run_executor_code();
 	void clear_executor_code();
 	void clear_executor_log();
+	/// opens a file dialog and copies selected scripts to the scripts folder
+	void add_new_scripts();
 }

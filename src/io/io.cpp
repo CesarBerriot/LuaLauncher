@@ -5,6 +5,8 @@
 #include <dirent.h>
 #include <limits.h>
 #include <stdio.h>
+#include <libgen.h>
+#include <Windows.h>
 
 std::vector<std::string> io::obtain_script_list()
 {	// obtain full path of scripts directory
@@ -48,9 +50,12 @@ std::string io::get_full_scripts_path()
 }
 
 std::string io::read_script(std::string file_name, bool use_executor_log)
-{	try
+{	// operator ""s
+	using namespace std::string_literals;
+
+	try
 	{	if(!file_name.length())
-			throw "Script Read Error : Empty file name";
+			throw "Script Read Error : Empty file name"s;
 
 		// determine the file's full path
 		std::string path = make_string(get_full_scripts_path() << '\\' << file_name << ".lua");
@@ -83,5 +88,40 @@ std::string io::read_script(std::string file_name, bool use_executor_log)
 		else
 			ui::log(error_msg);
 		return {};
+	}
+}
+
+void io::add_script(std::string full_path)
+{	// operator ""s
+	using namespace std::string_literals;
+
+	std::string file_name;
+
+	try
+	{	if(!full_path.length())
+			throw "Empty script path"s;
+
+		file_name = basename((char *)full_path.c_str());
+		std::string copy_path = make_string(io::get_full_scripts_path() << '\\' << file_name);
+		std::string a = "make_string(io::get_full_scripts_path() << '\\' << file_name);"s;
+
+		bool copy_result = CopyFileA(full_path.c_str(), copy_path.c_str(), true);
+		if(!copy_result)
+			switch(GetLastError())
+			{	case ERROR_FILE_NOT_FOUND:
+					throw "Invalid source file path"s;
+				case ERROR_ACCESS_DENIED:
+					throw "Access to the destination file denied"s;
+				case ERROR_ENCRYPTION_FAILED:
+					throw "Bitlocker encryption of the destination file failed"s;
+				default:
+					throw "A script with an identical file name already exists within the scripts folder"s;
+			}
+
+		ui::log(make_string("Successfully Imported File '" << file_name.c_str() << '\''));
+	}
+	catch(std::string error_msg)
+	{	std::string file_name_str = file_name.length() ? make_string(" (" << file_name << ')') : std::string();
+		ui::log(make_string("Script Import Error" << file_name_str << " : " << error_msg));
 	}
 }

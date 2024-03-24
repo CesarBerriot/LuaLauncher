@@ -26,11 +26,14 @@ namespace ui
 				{	void init();
 					inline QMenu * file_submenu;
 					inline QAction * add_action;
+					inline templates::delegate<void()> add_action_clicked_cb;
 				}
 				namespace view_submenu
 				{	void init();
 					inline QMenu * view_submenu;
+					inline QAction * refresh_action;
 					inline QAction * lua_executor_action;
+					inline templates::delegate<void()> refresh_action_clicked_cb;
 				}
 				namespace help_submenu
 				{	void init();
