@@ -8,8 +8,6 @@ function fibonacci(n)
   return inner(n)
 end
 
-for i=10,1,-1 do print(i) end
-
 for i=0,24 do
-  print("fibonnaci of "..tostring(i).." : "..tostring(fibonacci(i)))
+  print("fibonnaci value of "..tostring(i).." : "..tostring(fibonacci(i)))
 end
