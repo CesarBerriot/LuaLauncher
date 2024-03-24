@@ -3,8 +3,13 @@
 //
 
 #include "utils.hpp"
+#include <unistd.h>
 #include <assert.h>
+#include <unistd.h>
 #include <io.h>
+
+/// microsoft and their "support" of crt
+#define pipe(pipefds) _pipe(pipefds, 0, 0)
 
 int utils::find_last_eq_byte(utils::byte_t byte, utils::byte_t * buffer, size_t buflen)
 {	int result = -1;
@@ -14,33 +19,50 @@ int utils::find_last_eq_byte(utils::byte_t byte, utils::byte_t * buffer, size_t 
 	return result;
 }
 
-FILE * utils::redirect_stdout(int * out_original_stdout)
-{	// @note : fdid means file descriptor ID
+utils::redirected_stdout utils::redirect_stdout()
+{	// @note : fdid means file descriptor id
+
+	int e;
+	utils::redirected_stdout result;
 
 	// create a copy of stdout's current file descriptor
 	int stdout_fdid = fileno(stdout); assert(stdout_fdid != -1);
-	int original_stdout_copy_fdid = dup(stdout_fdid); assert(stdout_fdid != -1);
+	result.original_stdout = dup(stdout_fdid); assert(result.original_stdout != -1);
 
-	// write our copy's id to **out_original_stdout**
-	assert(out_original_stdout);
-	*out_original_stdout = original_stdout_copy_fdid;
+	// create a new pipe
+	e = _pipe(result.pipe, 0, 0); assert(!e);
 
-	// create a temporary file
-	FILE * tmp_file = tmpfile(); assert(tmp_file);
-	int tmp_file_fdid = fileno(tmp_file); assert(tmp_file_fdid != -1);
+	// overwrite stdout
+	e = dup2(result.pipe[1], stdout_fdid); assert(!e);
 
-	// copy our temporary file's descriptor into stdout's
-	int result_fdid = dup2(tmp_file_fdid, stdout_fdid); assert(result_fdid == tmp_file_fdid);
-
-	return tmp_file;
+	return result;
 }
 
-void utils::restore_stdout(FILE * tmp_file, int original_stdout)
-{	// obtain stdout's current file descriptor ID
-	int stdout_fdid = fileno(stdout);
-	// copy our original stdout copy file descriptor into the current file descriptor of stdout
-	int result_fdid = dup2(original_stdout, stdout_fdid);
-	assert(result_fdid == original_stdout);
-	// delete the temporary file
-	fclose(tmp_file);
+void utils::restore_stdout(utils::redirected_stdout redirected_stdout)
+{	// @note : fdid means file descriptor id
+
+	int e;
+
+	// close the pipe
+	e = close(redirected_stdout.pipe[0]); assert(!e);
+	e = close(redirected_stdout.pipe[1]); assert(!e);
+
+	// overwrite stdout
+	int stdout_fdid = fileno(stdout); assert(stdout_fdid);
+	e = dup2(redirected_stdout.original_stdout, stdout_fdid); assert(!e);
+
+	// destroy our copy of stdout's original file descriptor
+	e = close(redirected_stdout.original_stdout); assert(!e);
+}
+
+int utils::read_redirected_stdout(utils::redirected_stdout redirected_stdout, char * buffer, size_t buflen)
+{	// dirty hack that fixes infinite read() problems due to microsoft's posix implementations being absolute shit
+	putchar(' ');
+	fflush(stdout);
+	// posix read
+	int r = read(redirected_stdout.pipe[0], buffer, buflen - 1);
+	// zero-termination of the read data
+	if(r != -1)
+		buffer[r] = '\0';
+	return r;
 }

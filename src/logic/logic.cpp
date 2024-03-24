@@ -13,7 +13,7 @@
 
 void logic::bind_ui_elements()
 {	// bind io::run_script() on script item double clicked
-	ui::widgets::main_window::central_widget::layout::script_list::item_double_clicked_cb.bind(io::run_script);
+	ui::widgets::main_window::central_widget::layout::script_list::item_double_clicked_cb.bind(run_script);
 	// bind logic::run_executor_code() on executor run button
 	ui::widgets::lua_executor::layout::top_layout::button_panel_layout::run_button_clicked_cb.bind(run_executor_code);
 	// bind code clear on executor clear button
@@ -35,10 +35,17 @@ void logic::refresh_script_list()
 	ui::widgets::main_window::central_widget::layout::script_list::refresh(script_list);
 }
 
-void logic::run_executor_code()
-{	lua_State * L = nullptr;
-	int original_stdout;
-	FILE * redirected_stdout_file = nullptr;
+void logic::run_code(std::string code, bool use_executor_log, std::string script_name)
+{	auto log_function = [&use_executor_log](std::string msg, bool use_timestamps = true)
+	{	if(use_executor_log)
+			ui::executor_log(msg, use_timestamps);
+		else
+			ui::log(msg, use_timestamps);
+	};
+
+	lua_State * L = nullptr;
+	utils::redirected_stdout redirected_stdout;
+	bool is_stdout_redirected = false;
 	try
 	{	// create lua virtual machine
 		L = luaL_newstate();
@@ -49,43 +56,55 @@ void logic::run_executor_code()
 		luaL_openlibs(L);
 
 		// redirect stdout
-		redirected_stdout_file = utils::redirect_stdout(&original_stdout);
+		redirected_stdout = utils::redirect_stdout();
+		is_stdout_redirected = true;
 
 		// load code from the executor
-		std::string code = ui::widgets::lua_executor::layout::top_layout::editor_layout::editor->toPlainText().toStdString();
 		if(luaL_loadstring(L, code.c_str()) != LUA_OK)
 			throw make_string("Invalid Code Error : '" << lua_tolstring(L, lua_gettop(L), nullptr) << '\'');
 
 		// run the code
-		ui::executor_log("Running The Script");
+		log_function(script_name.length() ? make_string("Running Script '" << script_name << '\'') : "Running The Script");
 		if(lua_pcall(L, 0, 0, 0) != LUA_OK)
 			throw make_string("Code Execution Error : '" << lua_tolstring(L, lua_gettop(L), nullptr) << '\'');
 
 		// read data from the redirected stdout
 		enum { buflen = 1024 };
 		char stdout_buffer[buflen];
-		memset(stdout_buffer, '\0', buflen);
-		fread(stdout_buffer, 1, buflen, redirected_stdout_file);
+		utils::read_redirected_stdout(redirected_stdout, stdout_buffer, buflen);
 
 		// if non-empty, log the script output
 		if(stdout_buffer[0])
 		{	// if newline-terminated, remove the trailing newline character from the lua output
 			if(int i = utils::find_last_eq_byte('\n', stdout_buffer, BUFSIZ); i != -1)
 				stdout_buffer[i] = '\0';
-			ui::executor_log(stdout_buffer, false);
+			log_function(stdout_buffer, false);
 		}
 	}
 	catch(std::string error_msg)
-	{	ui::executor_log(error_msg);
+	{	log_function(error_msg);
 	}
 
 	// cleanup
-	if(redirected_stdout_file)
-		utils::restore_stdout(redirected_stdout_file, original_stdout);
+	if(is_stdout_redirected)
+		utils::restore_stdout(redirected_stdout);
 	if(L)
 	{	lua_settop(L, 0);
 		lua_close(L);
 	}
+}
+
+void logic::run_script(std::string file_name)
+{	std::string code = io::read_script(file_name);
+	if(code.length())
+		run_code(code);
+}
+
+void logic::run_executor_code()
+{	run_code(
+		ui::widgets::lua_executor::layout::top_layout::editor_layout::editor->toPlainText().toStdString(),
+		true
+	);
 }
 
 void logic::clear_executor_code()

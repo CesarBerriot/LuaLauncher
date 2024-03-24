@@ -14,13 +14,20 @@ namespace utils
 	/// @return index of the found byte, else -1
 	int find_last_eq_byte(byte_t byte, byte_t * buffer, size_t buflen);
 
-	/**
-	 * @brief redirects stdout to a new temporary file
-	 * @param out_original_stdout contains a copy of stdout's original file descriptor
-	 * @return a temporary file that'll be written into instead of stdout
-	 */
-	FILE * redirect_stdout(int * out_original_stdout);
+	/// used by **redirect_stdout** and **restore_stdout**
+	struct redirected_stdout
+	{	/// a pipe, for more info lookup pipe() on the linux manual
+		int pipe[2];
+		/// file descriptor id of a copy of the original file descriptor of stdout
+		int original_stdout;
+	};
 
 	/// @see redirect_stdout
-	void restore_stdout(FILE * tmp_file, int original_stdout);
+	redirected_stdout redirect_stdout();
+
+	/// simplifies a posix read() on the read file descriptor of a redirected_stdout's pipe
+	int read_redirected_stdout(redirected_stdout, char buffer[], size_t buflen);
+
+	/// @see redirect_stdout
+	void restore_stdout(redirected_stdout);
 }

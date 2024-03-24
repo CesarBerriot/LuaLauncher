@@ -1,0 +1,25 @@
+#include <stdio.h>
+#include <unistd.h>
+
+int main()
+{	int test_pipe[2];
+	_pipe(test_pipe, 0, 0);
+
+	int stdout_copy = dup(fileno(stdout));
+
+	dup2(test_pipe[1], fileno(stdout));
+	puts("testmsg");
+	fflush(stdout);
+
+	char buffer[20];
+	read(test_pipe[0], buffer, 20);
+
+	close(test_pipe[0]);
+	close(test_pipe[1]);
+
+	dup2(stdout_copy, fileno(stdout));
+
+	puts(buffer);
+
+	return 0;
+}

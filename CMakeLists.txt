@@ -14,7 +14,7 @@ find_package(Qt6 COMPONENTS
         Widgets
         REQUIRED)
 
-add_executable(LuaLauncher WIN32
+add_executable(LuaLauncher
         src/main.cpp
         src/ui/ui.hpp
         src/ui/ui.cpp

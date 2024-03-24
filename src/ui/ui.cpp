@@ -23,8 +23,6 @@ void ui::widgets::main_window::init()
 	main_window->setStatusBar(status_bar);
 	// logs
 	log("Successfully Initialized Lua Launcher");
-	for(int i = 0; i < 40; ++i)
-		central_widget::layout::script_list::create_item("ntr");
 }
 
 void ui::widgets::main_window::menu_bar::init()
