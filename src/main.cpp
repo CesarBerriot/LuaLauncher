@@ -1,5 +1,4 @@
 #include <QApplication>
-#include <QDialog>
 #include "ui/ui.hpp"
 #include "logic/logic.hpp"
 
