@@ -1,0 +1,29 @@
+Step 1 : 
+Download NSIS (https://nsis.sourceforge.io/Download)
+
+Step 2 :
+Compile the program (This is basic CMake knowledge, just google how it's done).
+
+Step 3 :
+Copy all DLLs and Executables from your build folder into the bin folder.
+It should contain the following :
+- plugins/platforms/qwindows.dll
+- Qt6Core.dll
+- Qt6Gui.dll
+- Qt6Widgets.dll
+- LuaLauncher.exe
+
+Step 4 :
+Copy lua54.dll from libs/lua into the bin folder.
+
+Step 5 :
+Copy the following DLLs from you installation of mingw's bin folder into the bin folder :
+- libgcc_s_seh-1.dll
+- libstdc++-6.dll
+- libwinpthread-1.dll
+
+Step 5.5 (Optional) :
+Run bin/LuaLauncher.exe and make sure you don't get any missing dll errors (which most likely means you forgot something).
+
+Step 6 :
+Right click LuaLauncher.nsi and select "Compile NSIS Script"
