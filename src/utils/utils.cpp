@@ -30,6 +30,10 @@ utils::redirected_stdout utils::redirect_stdout()
 
 	// create a copy of stdout's current file descriptor
 	int stdout_fdid = fileno(stdout); assert(stdout_fdid != -1);
+	// @todo on windows this assertion fails with errno set to EBADF,
+	// meaning that stdout_fdid isn't an open file descriptor
+	// which doesn't make sense as this file descriptor literally
+	// represents stdout, and I asserted the value of stdout_fdid
 	result.original_stdout = dup(stdout_fdid); assert(result.original_stdout != -1);
 
 	// create a new pipe
