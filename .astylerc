@@ -44,7 +44,6 @@ mode=c
 
 # Other Options
 suffix=none
-recursive
 #dry-run
 preserve-date
 verbose

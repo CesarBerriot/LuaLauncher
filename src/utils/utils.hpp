@@ -6,6 +6,9 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#if WIN32
+	#include <windows.h>
+#endif
 
 namespace utils
 {
@@ -19,10 +22,14 @@ namespace utils
 
 	/// used by **redirect_stdout** and **restore_stdout**
 	struct redirected_stdout
-	{	/// a pipe, for more info lookup pipe() on the linux manual
+	{
+		#if WIN32
+		#else
+		/// a pipe, for more info lookup pipe() on the linux manual
 		int pipe[2];
 		/// file descriptor id of a copy of the original file descriptor of stdout
 		int original_stdout;
+		#endif
 	};
 
 	/// @see redirect_stdout
